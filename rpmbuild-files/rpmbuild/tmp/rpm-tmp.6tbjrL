@@ -1,0 +1,43 @@
+#!/bin/sh
+
+  RPM_SOURCE_DIR="/home/ec2-user/rpmbuild/SOURCES"
+  RPM_BUILD_DIR="/home/ec2-user/rpmbuild/BUILD"
+  RPM_OPT_FLAGS="-O2 -g"
+  RPM_LD_FLAGS=""
+  RPM_ARCH="x86_64"
+  RPM_OS="linux"
+  export RPM_SOURCE_DIR RPM_BUILD_DIR RPM_OPT_FLAGS RPM_LD_FLAGS RPM_ARCH RPM_OS
+  RPM_DOC_DIR="/usr/share/doc"
+  export RPM_DOC_DIR
+  RPM_PACKAGE_NAME="zabbix_agent"
+  RPM_PACKAGE_VERSION="1"
+  RPM_PACKAGE_RELEASE="0.1"
+  export RPM_PACKAGE_NAME RPM_PACKAGE_VERSION RPM_PACKAGE_RELEASE
+  LANG=C
+  export LANG
+  unset CDPATH DISPLAY ||:
+  RPM_BUILD_ROOT="/home/ec2-user/rpmbuild/BUILDROOT/zabbix_agent-1-0.1.x86_64"
+  export RPM_BUILD_ROOT
+  
+  PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/lib64/pkgconfig:/usr/share/pkgconfig"
+  export PKG_CONFIG_PATH
+  
+  set -x
+  umask 022
+  cd "/home/ec2-user/rpmbuild/BUILD"
+cd 'zabbix_agent-1'
+mkdir -p $RPM_BUILD_ROOT/var/tmp/za1
+mkdir -p $RPM_BUILD_ROOT/var/tmp/za2
+
+install -m 700 zabbix_agent-1/tmp1  $RPM_BUILD_ROOT/var/tmp/az1/tmp1
+
+
+
+    
+    /usr/lib/rpm/check-buildroot
+    
+    /usr/lib/rpm/brp-compress 
+    /usr/lib/rpm/brp-strip /usr/bin/strip 
+    /usr/lib/rpm/brp-strip-static-archive /usr/bin/strip 
+    /usr/lib/rpm/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump 
+

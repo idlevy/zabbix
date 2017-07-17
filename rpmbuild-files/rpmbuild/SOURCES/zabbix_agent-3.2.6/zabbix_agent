@@ -1,0 +1,109 @@
+#! /bin/sh
+
+# chkconfig: - 99 10 
+
+counter=0
+zabbix_counter=$(ps -ef | grep zabbix_agentd | grep -v grep | wc -l)
+
+start(){
+echo "-------------------------------------------------------------------"
+echo " LAUNCHING ZABBIX AGENT"
+
+if [ $zabbix_counter -gt 0 ]; then
+echo " * Zabbix agent was previously running"
+echo " * Number of Zabbix agentd instances= $zabbix_counter"
+echo "-----------------------------------------------------------------"
+fi
+
+# Checking if the user is able to start the agent.... if the user is not able to, script performs su to
+# the user zabbix and starts the agent
+
+#if [ $(whoami) != "zabbix" ];then
+#sudo -u zabbix zabbix_agentd
+#else
+# Script is acting as the zabbix user, so it can start the agent.
+su - ec2-user -c "zabbix_agentd"
+#fi
+sleep 10
+
+zabbix_counter=$(ps -ef | grep zabbix_agentd | grep -v grep | wc -l)
+if [ $zabbix_counter -gt 0 ]; then
+echo " * Zabbix agent succesfully started"
+echo " * Number of zabbix agentd instances= $zabbix_counter"
+echo "-------------------------------------------------------------------"
+else
+echo " * Zabbix agent couldn't be started, check Zabbix logs"
+echo "-------------------------------------------------------------------"
+fi
+
+}
+
+stop(){
+# Checking if the user is able to stop the agent.... if the user is not able to, script performs su to
+# the user zabbix and kills the agent. Also script tries to kill zabbix-agent processes 5 times using a counter, if at
+# the fith try the agent is still there, script outputs a message to the console.
+
+echo "-------------------------------------------------------------------"
+echo " STOPPING ZABBIX AGENT"
+
+if [ $zabbix_counter -eq 0 ]; then
+echo " * Zabbix agent was not running on this machine"
+echo "-------------------------------------------------------------------"
+fi
+
+while [ $zabbix_counter -gt 0 ] && [ $counter -lt 5 ] ; do
+
+let counter=counter+1
+
+echo " * Number of Attempts (Max 5)=$counter"
+echo " * Stopping zabbix.."
+echo " * Number of zabbix agentd instances= $zabbix_counter"
+
+killall zabbix_agentd > /dev/null &
+
+sleep 10
+# Script has a 10 second delay to avoid attempting to kill a process that is still shutting down. If the script
+# can't kill the processes, an error will appear.
+# After 10 seconds script checks again the number of zabbix_agentd processes running,
+# if it's 0, script will exit the loop and continue on
+
+zabbix_counter=$(ps -ef | grep zabbix_agentd | grep -v grep | wc -l)
+
+done
+
+if [ $zabbix_counter -gt 0 ]; then
+echo " * Zabbix agent couldn't be stopped, check Zabbix logs"
+echo "-------------------------------------------------------------------"
+fi
+
+if [ $zabbix_counter -eq 0 ]; then
+echo " * Zabbix agent successfully stopped"
+echo "-------------------------------------------------------------------"
+fi
+
+}
+
+restart(){
+stop
+# Gives system some time to stop processes before script restarts service
+sleep 10
+# Now script can start the agent again
+start
+}
+
+case "$1" in
+start)
+start
+;;
+stop)
+stop
+;;
+restart)
+restart
+;;
+*)
+echo "Usage: zabbix {start|stop|restart}"
+exit 1
+esac
+
+exit 0
