@@ -1,4 +1,4 @@
-#! /bin/bash/
+#!/usr/bin/bash
 #script  to enable/disable/delete hosts from zabbix.
 # zbx.update.sh enbale|disbale|delete  <hostname>
 
